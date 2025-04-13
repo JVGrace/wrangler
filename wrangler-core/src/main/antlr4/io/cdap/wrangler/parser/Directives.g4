@@ -140,8 +140,14 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -311,3 +317,20 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+// Fragments for unit parsing
+fragment BYTE_UNIT : 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' ;
+fragment TIME_UNIT : 'ms' | 's' | 'm' | 'h' | 'd' ;
+
+// Lexer rules for new token types
+BYTE_SIZE : Digit+ ('.' Digit+)? BYTE_UNIT ;
+TIME_DURATION : Digit+ ('.' Digit+)? TIME_UNIT ;
+
+byteSizeArg
+  : ByteSize
+  ;
+
+timeDurationArg
+  : TimeDuration
+  ;
+
+ 

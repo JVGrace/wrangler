@@ -300,6 +300,20 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new BoolList(booleans));
     return builder;
   }
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String value = ctx.getText(); // gets the full string like "10MB"
+    builder.addToken(new Text(value)); // optionally, create a new `ByteSize` class instead of Text
+    return builder;
+  }
+
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String value = ctx.getText(); // e.g., "5h", "30min"
+    builder.addToken(new Text(value)); // optionally, create a new `TimeDuration` class
+    return builder;
+  }
+
 
   /**
    * This visitor methods extracts the list of strings specified. It creates a token

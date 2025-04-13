@@ -16,15 +16,16 @@
 
 package io.cdap.wrangler.parser;
 
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
 
 /**
  * Tests {@link GrammarBasedParser}
@@ -73,6 +74,26 @@ public class GrammarBasedParserTest {
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
+  }
+  @Test
+  public void testByteSizeAndTimeDurationParsing() throws Exception {
+      String[] recipe = {
+          "#pragma version 2.0;",
+          "aggregate-stats :col1 timeout 5s buffer 10MB;" // Example directive
+      };
+      RecipeParser parser = TestingRig.parse(recipe);
+      List<Directive> directives = parser.parse();
+      Assert.assertEquals(1, directives.size());
+      // Additional assertions to verify parsed parameters
+  }
+
+  @Test(expected = Exception.class)
+  public void testInvalidSyntaxRejection() throws Exception {
+      String[] invalidRecipe = {
+          "#pragma version 2.0;",
+          "aggregate-stats :col1 timeout 5sec buffer 10XX"
+      };
+      TestingRig.parse(invalidRecipe).parse();
   }
 
 }

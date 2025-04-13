@@ -1,0 +1,67 @@
+All Propmtts Used: ChatGPT used
+
+
+1.
+
+You are Backend Develeoper give me step by step process for this assignment : .... Whole assignment text
+
+2. 
+Explain Grammer Modifaction part again
+
+3. 
+give API Updates (wrangler-api module):
+○ Create new Java classes ByteSize.java and TimeDuration.java extending Token
+[wrangler-api/src/main/java/io/cdap/wrangler/api/parser/Token.java]
+
+■ These classes should parse the token string (e.g., "10KB", "150ms") in
+their constructor.
+■ Provide methods to retrieve the value in a canonical unit (e.g., long
+getBytes() for ByteSize)
+○ Add BYTE_SIZE and TIME_DURATION to the Token Types
+○ Update usage de
+
+nition and token de
+
+nition to support specifying these new
+
+token types as valid directive arguments.
+
+
+4.
+solve this based on above (d) New Directive Implementation (wrangler-core module):
+○ Create a new directive class, which can do aggregation, implementing the
+Directive interface
+○ UsageDe
+
+nition (de
+
+ne()): The directive should accept at least four
+
+arguments:
+1. ColumnName (source column with byte sizes).
+2. ColumnName (source column with time durations).
+3. ColumnName (target column name for total size).
+4. ColumnName (target column name for total or average time).
+Optionally, add arguments to specify output units (e.g., 'MB', 'GB',
+'seconds', 'minutes') or aggregation type (total, average).
+○ Initialization : Store the source and target column names provided in the
+arguments.
+○ Execution :
+■ This directive should operate as an aggregate. So you need a store to
+accumulate totals. Think about it. Hint : Chk ExecutorContext
+■ For each row:
+■ Read the byte size value from the source size column.
+■ Read the time duration value from the source time column.
+■ Add these values (converted to canonical units like bytes and
+nanoseconds) to running totals stored in the Store.
+■ Finalization : This method (if using RecipePipeline's aggregation
+capabilities) or logic within the last execute call needs to:
+■ Retrieve the
+
+nal totals from the Store.
+
+■ Perform unit conversions if required by arguments (e.g., convert total
+bytes to MB, total nanoseconds to seconds).
+
+■ Return a single new Row containing the target columns with the
+calculated aggregate values (e.g., total_size_mb, total_time_sec).
