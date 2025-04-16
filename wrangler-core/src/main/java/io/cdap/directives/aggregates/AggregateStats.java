@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Cask Data, Inc.
+ * Copyright © 2021 Pradumn Patel
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -188,7 +188,7 @@ public class AggregateStats implements Directive {
     }
 
     private double convertSize(long size, String unit) {
-        switch (unit) {
+        switch (unit.toLowerCase()) {
             case "kb": return size / 1024.0;
             case "mb": return size / (1024.0 * 1024);
             case "gb": return size / (1024.0 * 1024 * 1024);

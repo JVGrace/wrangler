@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Cask Data, Inc.
+ * Copyright © 2021 Pradumn Patel
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,22 +15,42 @@
  */
 package io.cdap.wrangler.utils;
 
-import io.cdap.wrangler.TestingRig;
-import io.cdap.wrangler.api.Row;
-
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
+import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.Row;
 
 /**
  * Tests for {@link io.cdap.directives.aggregation.AggregateStats} directive.
  */
 public class AggregateStatsTest {
+	
+	@Test
+    public void testAggregateStats() throws Exception {
+        List<Row> rows = Arrays.asList();
 
-  
+        String[] recipe = new String[] {
+            "aggregate-stats :size :time :total_size :total_time"
+        };
+
+        List<Row> results = TestingRig.execute(recipe, rows);
+        assertEquals(0, results.size());
+    }
+
+	@Test(expected = Exception.class)
+	public void testInvalidInputFormat() throws Exception {
+		List<Row> rows = Arrays.asList(new Row("size", "invalid").add("time", "500ms"),
+				new Row("size", "2MB").add("time", "invalid"));
+
+		String[] recipe = new String[] { "aggregate-stats :size :time total_size total_time" };
+
+		TestingRig.execute(recipe, rows);
+	}
 
 	@Test
     public void testBasicAggregation() throws Exception {
@@ -42,8 +62,8 @@ public class AggregateStatsTest {
 
         // Proper directive syntax with all required parameters
         String[] recipe = new String[] {
-            "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec;"
-        };
+        		"aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec size_unit:mb time_unit:s"
+            };
 
         List<Row> results = TestingRig.execute(recipe, rows);
         
@@ -98,30 +118,5 @@ public class AggregateStatsTest {
 	    assertEquals(1.001, (double) result.getValue("total_bytes_gb"), 0.001);
 	    assertEquals(1.0333, (double) result.getValue("total_duration_min"), 0.0001);
 	}
-
-    @Test(expected = Exception.class)
-    public void testInvalidInputFormat() throws Exception {
-        List<Row> rows = Arrays.asList(
-            new Row("size", "invalid").add("time", "500ms"),
-            new Row("size", "2MB").add("time", "invalid")
-        );
-
-        String[] recipe = new String[] {
-            "aggregate-stats :size :time total_size total_time"
-        };
-
-        TestingRig.execute(recipe, rows);
-    }
-
-    @Test
-    public void testEmptyInput() throws Exception {
-        List<Row> rows = Arrays.asList();
-
-        String[] recipe = new String[] {
-            "aggregate-stats :size :time :total_size :total_time"
-        };
-
-        List<Row> results = TestingRig.execute(recipe, rows);
-        assertEquals(0, results.size());
-    }
+    
 }
