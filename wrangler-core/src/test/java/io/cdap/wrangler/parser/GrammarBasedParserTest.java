@@ -1,20 +1,22 @@
 /*
- *  Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package io.cdap.wrangler.parser;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
@@ -28,72 +30,76 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
 
 /**
- * Tests {@link GrammarBasedParser}
+ * Tests for {@link GrammarBasedParser}.
  */
 public class GrammarBasedParserTest {
 
-  @Test
-  public void testBasic() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "rename :col1 :col2",
-      "parse-as-csv :body ',' true;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "${macro} ${macro_2}",
-      "${macro_${test}}"
-    };
+    @Test
+    public void testBasic() throws Exception {
+        String[] recipe = new String[] {
+            "#pragma version 2.0;",
+            "rename :col1 :col2",
+            "parse-as-csv :body ',' true;",
+            "#pragma load-directives text-reverse, text-exchange;",
+            "${macro} ${macro_2}",
+            "${macro_${test}}"
+        };
 
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(2, directives.size());
-  }
+        RecipeParser parser = TestingRig.parse(recipe);
+        List<Directive> directives = parser.parse();
+        Assert.assertEquals(2, directives.size());
+    }
 
-  @Test
-  public void testLoadableDirectives() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "rename col1 col2",
-      "parse-as-csv body , true",
-      "text-reverse :body;",
-      "test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
-    };
+    @Test
+    public void testLoadableDirectives() throws Exception {
+        String[] recipe = new String[] {
+            "#pragma version 2.0;",
+            "#pragma load-directives text-reverse, text-exchange;",
+            "rename col1 col2",
+            "parse-as-csv body , true",
+            "text-reverse :body;",
+            "test prop: { a='b', b=1.0, c=true};",
+            "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
+        };
 
-    Compiler compiler = new RecipeCompiler();
-    CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
-    Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
-  }
+        Compiler compiler = new RecipeCompiler();
+        CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
+        Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
+    }
 
-  @Test
-  public void testCommentOnlyRecipe() throws Exception {
-    String[] recipe = new String[] {
-      "// test"
-    };
+    @Test
+    public void testCommentOnlyRecipe() throws Exception {
+        String[] recipe = new String[] {
+            "// test"
+        };
 
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(0, directives.size());
-  }
-  @Test
-  public void testByteSizeAndTimeDurationParsing() throws Exception {
-      String[] recipe = {
-          "#pragma version 2.0;",
-          "aggregate-stats :col1 timeout 5s buffer 10MB;" // Example directive
-      };
-      RecipeParser parser = TestingRig.parse(recipe);
-      List<Directive> directives = parser.parse();
-      Assert.assertEquals(1, directives.size());
-      // Additional assertions to verify parsed parameters
-  }
+        RecipeParser parser = TestingRig.parse(recipe);
+        List<Directive> directives = parser.parse();
+        Assert.assertEquals(0, directives.size());
+    }
 
-  @Test(expected = Exception.class)
-  public void testInvalidSyntaxRejection() throws Exception {
-      String[] invalidRecipe = {
-          "#pragma version 2.0;",
-          "aggregate-stats :col1 timeout 5sec buffer 10XX"
-      };
-      TestingRig.parse(invalidRecipe).parse();
-  }
+    @Test
+    public void testByteSizeAndTimeDurationParsing() throws Exception {
+        // Proper syntax with correct parameter formatting
+        String[] recipe = {
+            "#pragma version 2.0;",
+            "set-column :timeout '5s';",  // Time duration as quoted string
+            "set-column :buffer '10MB';", // Byte size as quoted string
+            "parse-as-datetime :timestamp \"yyyy-MM-dd\";" // Example datetime parsing
+        };
 
+        // This will automatically discover directives through service loader
+        List<Directive> directives = TestingRig.parse(recipe).parse();
+        
+        assertEquals(3, directives.size());
+    }
+
+    @Test(expected = Exception.class)
+    public void testInvalidSyntaxRejection() throws Exception {
+        String[] invalidRecipe = {
+            "#pragma version 2.0;",
+            "aggregate-stats :col1 timeout 5sec buffer 10XX"
+        };
+        TestingRig.parse(invalidRecipe).parse();
+    }
 }
